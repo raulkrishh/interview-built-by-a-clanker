@@ -6,14 +6,16 @@ export async function authenticate(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  if (!ENFORCE_AUTH) {
-    return;
-  }
-
   try {
     await request.jwtVerify();
   } catch {
-    reply.status(401).send({ error: "Unauthorized" });
+    if (ENFORCE_AUTH) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+    (request as FastifyRequest & { user: unknown }).user = {
+      id: "dev-user",
+      email: "dev@localhost",
+    };
   }
 }
 
